@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/models.dart';
 import '../services/api_service.dart';
@@ -632,27 +633,47 @@ class _TrustItem extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MARCAS PREMIUM
+// MARCAS PREMIUM CON LOGOS SVG + FOTOS DE FONDO
 // ─────────────────────────────────────────────────────────────
 
 class _PremiumBrandsStrip extends StatelessWidget {
   const _PremiumBrandsStrip();
 
   static const brands = [
-    _BrandTileData('Samsung', 'Galaxy Series', 'SAMSUNG', Color(0xFF111827), Icons.phone_android_rounded),
-    _BrandTileData('Xiaomi', 'Redmi / Poco', 'mi XIAOMI', Color(0xFF151515), Icons.phone_iphone_rounded),
-    _BrandTileData('Realme', 'C / Note Series', 'realme', Color(0xFF191A1D), Icons.smartphone_rounded),
-    _BrandTileData('Tecno', 'Spark / Camon', 'TECNO', Color(0xFF101828), Icons.phone_android_rounded),
-    _BrandTileData('Infinix', 'Hot / Note', 'Infinix', Color(0xFF141414), Icons.devices_rounded),
+    _BrandTileData(
+      name: 'Samsung',
+      logoPath: 'assets/logos/Samsung.svg',
+      imagePath: 'assets/brands/Samsung.jpg',
+    ),
+    _BrandTileData(
+      name: 'Xiaomi',
+      logoPath: 'assets/logos/Xiaomi.svg',
+      imagePath: 'assets/brands/Xiaomi.jpg',
+    ),
+    _BrandTileData(
+      name: 'Huawei',
+      logoPath: 'assets/logos/Huawei.svg',
+      imagePath: 'assets/brands/Huawei.jpg',
+    ),
+    _BrandTileData(
+      name: 'Motorola',
+      logoPath: 'assets/logos/Motorola.svg',
+      imagePath: 'assets/brands/Motorola.jpg',
+    ),
+    _BrandTileData(
+      name: 'Apple',
+      logoPath: 'assets/logos/Apple.svg',
+      imagePath: 'assets/brands/Apple.jpg',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 92,
+        height: 102,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: brands.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (_, i) => _BrandTile(data: brands[i]),
         ),
       );
@@ -660,12 +681,14 @@ class _PremiumBrandsStrip extends StatelessWidget {
 
 class _BrandTileData {
   final String name;
-  final String subtitle;
-  final String logo;
-  final Color color;
-  final IconData icon;
+  final String logoPath;
+  final String imagePath;
 
-  const _BrandTileData(this.name, this.subtitle, this.logo, this.color, this.icon);
+  const _BrandTileData({
+    required this.name,
+    required this.logoPath,
+    required this.imagePath,
+  });
 }
 
 class _BrandTile extends StatelessWidget {
@@ -675,63 +698,94 @@ class _BrandTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 155,
-        padding: const EdgeInsets.all(14),
+        width: 174,
         decoration: BoxDecoration(
-          color: data.color,
-          borderRadius: BorderRadius.circular(19),
-          boxShadow: [AppTheme.softShadow(.08)],
+          color: AppTheme.black,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [AppTheme.softShadow(.10)],
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned(
-              right: -12,
-              bottom: -16,
-              child: Icon(
-                data.icon,
-                size: 72,
-                color: Colors.white.withOpacity(.14),
-              ),
+            Image.asset(
+              data.imagePath,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _brandFallback(data.name),
             ),
-            Positioned(
-              right: 12,
-              bottom: 8,
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppTheme.orange.withOpacity(.18),
-                  shape: BoxShape.circle,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.black.withOpacity(.82),
+                    Colors.black.withOpacity(.34),
+                    Colors.black.withOpacity(.05),
+                  ],
                 ),
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.logo,
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 50,
+              child: SvgPicture.asset(
+                data.logoPath,
+                height: 20,
+                alignment: Alignment.centerLeft,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+                placeholderBuilder: (_) => Text(
+                  data.name.toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: data.name == 'Xiaomi' ? AppTheme.orange : Colors.white,
-                    fontSize: 16,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: data.name == 'Samsung' ? 1.8 : -.3,
+                    letterSpacing: 1.2,
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  data.subtitle,
+              ),
+            ),
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(.14),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.white.withOpacity(.18)),
+                ),
+                child: const Text(
+                  'Ver modelos',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(.72),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ],
+              ),
             ),
           ],
+        ),
+      );
+
+  Widget _brandFallback(String name) => Container(
+        color: AppTheme.black,
+        child: Center(
+          child: Text(
+            name.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
       );
 }
@@ -793,72 +847,105 @@ class _CategoryPhotoCard extends StatelessWidget {
     required this.onTap,
   });
 
-  IconData get _icon {
+  String get _imagePath {
     final l = label.toLowerCase();
-    if (l.contains('pantalla')) return Icons.phone_android_rounded;
-    if (l.contains('bater')) return Icons.battery_charging_full_rounded;
-    if (l.contains('flex') || l.contains('conector')) return Icons.settings_input_component_rounded;
-    if (l.contains('camara')) return Icons.camera_alt_rounded;
-    if (l.contains('herramienta')) return Icons.build_rounded;
-    if (l.contains('auricular') || l.contains('corneta')) return Icons.headphones_rounded;
-    return Icons.devices_other_rounded;
-  }
 
-  Color get _color {
-    final l = label.toLowerCase();
-    if (l.contains('pantalla')) return const Color(0xFF111827);
-    if (l.contains('bater')) return const Color(0xFF16A34A);
-    if (l.contains('flex') || l.contains('conector')) return const Color(0xFFF59E0B);
-    if (l.contains('camara')) return const Color(0xFF374151);
-    if (l.contains('herramienta')) return const Color(0xFF2563EB);
-    if (l.contains('auricular') || l.contains('corneta')) return const Color(0xFFEC4899);
-    return AppTheme.orange;
+    if (l.contains('pantalla')) {
+      return 'assets/categories/pantallas.jpg';
+    }
+
+    if (l.contains('bater')) {
+      return 'assets/categories/baterias.jpg';
+    }
+
+    if (l.contains('flex') || l.contains('conector')) {
+      return 'assets/categories/flex.jpg';
+    }
+
+    if (l.contains('camara') || l.contains('cámara')) {
+      return 'assets/categories/camaras.jpg';
+    }
+
+    if (l.contains('herramienta')) {
+      return 'assets/categories/herramientas.jpg';
+    }
+
+    if (l.contains('auricular') || l.contains('corneta')) {
+      return 'assets/categories/herramientas.jpg';
+    }
+
+    return 'assets/categories/herramientas.jpg';
   }
 
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 132,
-          padding: const EdgeInsets.all(13),
+          width: 142,
           decoration: BoxDecoration(
             color: AppTheme.bgCard,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: AppTheme.border),
-            boxShadow: [AppTheme.cardShadow(.04)],
+            boxShadow: [AppTheme.cardShadow(.045)],
           ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
               Expanded(
-                child: Center(
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: _color.withOpacity(.10),
-                      shape: BoxShape.circle,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      _imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFFF3F4F7),
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: AppTheme.grey3,
+                          size: 34,
+                        ),
+                      ),
                     ),
-                    child: Icon(_icon, color: _color, size: 30),
-                  ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(.08),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppTheme.black,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                models,
-                style: const TextStyle(
-                  color: AppTheme.grey2,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+                child: Column(
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.black,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      models,
+                      style: const TextStyle(
+                        color: AppTheme.grey2,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
