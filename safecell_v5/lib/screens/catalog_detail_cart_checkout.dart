@@ -8,23 +8,25 @@ import '../widgets/widgets.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 
-// ─── CATÁLOGO ─────────────────────────────────────────────────────
+// ─── CATÁLOGO PREMIUM ─────────────────────────────────────────────
 class CatalogScreen extends StatefulWidget {
   final String? initialCategory;
   const CatalogScreen({super.key, this.initialCategory});
+
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
   final _searchCtrl = TextEditingController();
-  final _scroll     = ScrollController();
-  List<Product> _products   = [];
-  List<String>  _categories = [];
-  String?       _selCat;
-  bool          _loading    = true;
-  int           _page       = 1;
-  bool          _hasMore    = true;
+  final _scroll = ScrollController();
+
+  List<Product> _products = [];
+  List<String> _categories = [];
+  String? _selCat;
+  bool _loading = true;
+  int _page = 1;
+  bool _hasMore = true;
 
   @override
   void initState() {
@@ -32,14 +34,22 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _selCat = widget.initialCategory;
     _loadCats();
     _load(reset: true);
+
     _scroll.addListener(() {
-      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 200 &&
-          !_loading && _hasMore) _load();
+      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 220 &&
+          !_loading &&
+          _hasMore) {
+        _load();
+      }
     });
   }
 
   @override
-  void dispose() { _searchCtrl.dispose(); _scroll.dispose(); super.dispose(); }
+  void dispose() {
+    _searchCtrl.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
 
   Future<void> _loadCats() async {
     final cats = await ApiService.getCategories();
@@ -48,28 +58,55 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   Future<void> _load({bool reset = false}) async {
     if (_loading && !reset) return;
+
     setState(() => _loading = true);
-    if (reset) { _page = 1; _products.clear(); }
+
+    if (reset) {
+      _page = 1;
+      _products.clear();
+    }
+
     final items = await ApiService.getProducts(
       category: _selCat,
       search: _searchCtrl.text.trim().isEmpty ? null : _searchCtrl.text.trim(),
-      page: _page, limit: 20,
+      page: _page,
+      limit: 20,
     );
-    if (mounted) setState(() {
-      _products.addAll(items);
-      _hasMore = items.length == 20;
-      if (items.isNotEmpty) _page++;
-      _loading = false;
-    });
+
+    if (mounted) {
+      setState(() {
+        _products.addAll(items);
+        _hasMore = items.length == 20;
+        if (items.isNotEmpty) _page++;
+        _loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
+
     return Scaffold(
       backgroundColor: AppTheme.bgPage,
       appBar: AppBar(
-        title: const Text('Catálogo'),
+        toolbarHeight: 70,
+        backgroundColor: AppTheme.bgPage,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Catálogo', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 2),
+            Text(
+              _selCat == null ? 'Repuestos, accesorios y soluciones móviles' : _selCat!,
+              style: const TextStyle(
+                color: AppTheme.grey2,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
         actions: [
           Stack(
             alignment: Alignment.topRight,
@@ -80,113 +117,185 @@ class _CatalogScreenState extends State<CatalogScreen> {
               ),
               if (cart.count > 0)
                 Positioned(
-                  right: 6, top: 6,
+                  right: 7,
+                  top: 8,
                   child: Container(
-                    width: 16, height: 16,
+                    padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(color: AppTheme.orange, shape: BoxShape.circle),
-                    child: Center(child: Text('${cart.count}',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800))),
+                    child: Text('${cart.count}', style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                    )),
                   ),
                 ),
             ],
           ),
+          const SizedBox(width: 10),
         ],
       ),
       body: Column(
         children: [
           Container(
-            color: AppTheme.bgCard,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppTheme.bgCard,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: AppTheme.border),
+              boxShadow: [AppTheme.softShadow(.05)],
+            ),
             child: Column(
               children: [
-                // Búsqueda
                 TextField(
                   controller: _searchCtrl,
                   onSubmitted: (_) => _load(reset: true),
-                  onChanged: (v) { if (v.isEmpty) _load(reset: true); },
-                  style: const TextStyle(color: AppTheme.black),
+                  onChanged: (v) {
+                    if (v.isEmpty) _load(reset: true);
+                    setState(() {});
+                  },
+                  style: const TextStyle(color: AppTheme.black, fontWeight: FontWeight.w700),
                   decoration: InputDecoration(
-                    hintText: 'Buscar productos...',
-                    prefixIcon: const Icon(Icons.search, color: AppTheme.grey3),
+                    hintText: 'Buscar pantalla, batería, flex...',
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.grey3),
                     suffixIcon: _searchCtrl.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppTheme.grey3),
-                          onPressed: () { _searchCtrl.clear(); _load(reset: true); },
-                        )
-                      : null,
+                        ? IconButton(
+                            icon: const Icon(Icons.close_rounded, color: AppTheme.grey3),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              _load(reset: true);
+                            },
+                          )
+                        : null,
                     filled: true,
                     fillColor: AppTheme.bgPage,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: const BorderSide(color: AppTheme.orange, width: 1.4),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                // Chips
+                const SizedBox(height: 12),
                 SizedBox(
-                  height: 34,
+                  height: 38,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
                       CategoryChip(
-                        label: 'Todos', selected: _selCat == null,
-                        onTap: () { setState(() => _selCat = null); _load(reset: true); },
+                        label: 'Todos',
+                        selected: _selCat == null,
+                        onTap: () {
+                          setState(() => _selCat = null);
+                          _load(reset: true);
+                        },
                       ),
                       ..._categories.map((c) => Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: CategoryChip(
-                          label: c, selected: _selCat == c,
-                          onTap: () { setState(() => _selCat = c); _load(reset: true); },
+                          label: c,
+                          selected: _selCat == c,
+                          onTap: () {
+                            setState(() => _selCat = c);
+                            _load(reset: true);
+                          },
                         ),
                       )),
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
               ],
             ),
           ),
           Expanded(
             child: _loading && _products.isEmpty
-              ? const Padding(padding: EdgeInsets.all(16), child: ShimmerGrid(count: 8))
-              : _products.isEmpty
-                ? const Center(child: Text('No se encontraron productos',
-                    style: TextStyle(color: AppTheme.grey2)))
-                : GridView.builder(
-                    controller: _scroll,
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, childAspectRatio: 0.72,
-                      crossAxisSpacing: 12, mainAxisSpacing: 12,
-                    ),
-                    itemCount: _products.length + (_hasMore ? 1 : 0),
-                    itemBuilder: (_, i) {
-                      if (i == _products.length)
-                        return const Center(child: CircularProgressIndicator(color: AppTheme.orange));
-                      final p = _products[i];
-                      return ProductCard(
-                        product: p, isNew: i % 5 == 1,
-                        onTap: () => context.go('/product/${p.slug}'),
-                        onAddCart: () {
-                          context.read<CartProvider>().add(p);
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('${p.name} agregado'),
-                            backgroundColor: AppTheme.black,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            duration: const Duration(seconds: 2),
-                          ));
+                ? const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: ShimmerGrid(count: 8),
+                  )
+                : _products.isEmpty
+                    ? const _EmptyCatalog()
+                    : GridView.builder(
+                        controller: _scroll,
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 110),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.66,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                        ),
+                        itemCount: _products.length + (_hasMore ? 1 : 0),
+                        itemBuilder: (_, i) {
+                          if (i == _products.length) {
+                            return const Center(
+                              child: CircularProgressIndicator(color: AppTheme.orange),
+                            );
+                          }
+
+                          final p = _products[i];
+
+                          return ProductCard(
+                            product: p,
+                            isNew: i % 5 == 1,
+                            isHot: i == 0,
+                            onTap: () => context.go('/product/${p.slug}'),
+                            onAddCart: () {
+                              context.read<CartProvider>().add(p);
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('${p.name} agregado'),
+                                backgroundColor: AppTheme.black,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                duration: const Duration(seconds: 2),
+                              ));
+                            },
+                          );
                         },
-                      );
-                    },
-                  ),
+                      ),
           ),
         ],
       ),
     );
   }
+}
+
+class _EmptyCatalog extends StatelessWidget {
+  const _EmptyCatalog();
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.bgCard,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inventory_2_outlined, color: AppTheme.grey3, size: 54),
+            SizedBox(height: 14),
+            Text('No se encontraron productos',
+              style: TextStyle(color: AppTheme.black, fontWeight: FontWeight.w900, fontSize: 15)),
+            SizedBox(height: 6),
+            Text('Prueba con otra categoría o escribe otro modelo.',
+              style: TextStyle(color: AppTheme.grey2, fontWeight: FontWeight.w600, fontSize: 12),
+              textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 // ─── DETALLE ──────────────────────────────────────────────────────
