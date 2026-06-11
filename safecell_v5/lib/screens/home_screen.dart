@@ -432,7 +432,7 @@ class _HeroSlideView extends StatelessWidget {
           ),
           // Content
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 22, 22, 44),
+            padding: const EdgeInsets.fromLTRB(24, 18, 22, 36),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -889,11 +889,15 @@ class _CategoryPhotoCard extends StatelessWidget {
     final l = label.toLowerCase();
     if (l.contains('pantalla')) return 'assets/categories/pantallas.jpg';
     if (l.contains('bater')) return 'assets/categories/baterias.jpg';
-    if (l.contains('flex') || l.contains('conector')) return 'assets/categories/flex.jpg';
+    if (l.contains('flex')) return 'assets/categories/flex.jpg';
+    if (l.contains('conector')) return 'assets/categories/conectores.jpg';
     if (l.contains('camara') || l.contains('cámara')) return 'assets/categories/camaras.jpg';
     if (l.contains('herramienta')) return 'assets/categories/herramientas.jpg';
-    if (l.contains('auricular') || l.contains('corneta')) return 'assets/categories/herramientas.jpg';
-    return 'assets/categories/herramientas.jpg';
+    if (l.contains('auricular') || l.contains('corneta')) return 'assets/categories/auriculares.jpg';
+    if (l.contains('cable')) return 'assets/categories/cables.jpg';
+    if (l.contains('cargador')) return 'assets/categories/cargadores.jpg';
+    if (l.contains('accesorio')) return 'assets/categories/accesorios.jpg';
+    return 'assets/categories/accesorios.jpg';
   }
 
   @override
@@ -999,7 +1003,7 @@ class _WeeklyOfferBanner extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 106,
+        height: 116,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppTheme.black,
