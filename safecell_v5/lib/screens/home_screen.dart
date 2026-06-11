@@ -253,7 +253,7 @@ class _RoundActionButton extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// HERO PREMIUM CON FOTOS REALES
+// HERO CAROUSEL
 // ─────────────────────────────────────────────────────────────
 
 class _HeroSlide {
@@ -364,6 +364,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                 onShop: widget.onShop,
               ),
             ),
+            // Dots indicators
             Positioned(
               left: 24,
               bottom: 17,
@@ -402,6 +403,7 @@ class _HeroSlideView extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(slide.image, fit: BoxFit.cover),
+          // Gradient overlay
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -423,16 +425,19 @@ class _HeroSlideView extends StatelessWidget {
                 colors: [
                   Colors.black.withOpacity(.08),
                   Colors.black.withOpacity(.08),
-                  Colors.black.withOpacity(.50),
+                  Colors.black.withOpacity(.60),
                 ],
               ),
             ),
           ),
+          // Content
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 22, 22, 24),
+            padding: const EdgeInsets.fromLTRB(24, 22, 22, 44),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Tag pill
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                   decoration: BoxDecoration(
@@ -450,31 +455,36 @@ class _HeroSlideView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  slide.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 29,
-                    fontWeight: FontWeight.w900,
-                    height: 1.02,
-                    letterSpacing: -1.2,
-                  ),
-                ),
-                const SizedBox(height: 9),
-                SizedBox(
-                  width: 270,
-                  child: Text(
-                    slide.subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(.86),
-                      fontSize: 12.5,
-                      height: 1.35,
-                      fontWeight: FontWeight.w700,
+                // Title + subtitle
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      slide.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 27,
+                        fontWeight: FontWeight.w900,
+                        height: 1.05,
+                        letterSpacing: -1.0,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 260,
+                      child: Text(
+                        slide.subtitle,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(.84),
+                          fontSize: 12,
+                          height: 1.35,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
+                // Buttons — fixed at bottom, no Spacer
                 Row(
                   children: [
                     ElevatedButton(
@@ -482,31 +492,53 @@ class _HeroSlideView extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.orange,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        elevation: 0,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(slide.button, style: const TextStyle(fontSize: 12)),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, size: 16),
+                          Text(
+                            slide.button,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.arrow_forward_rounded, size: 15),
                         ],
                       ),
                     ),
                     const SizedBox(width: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(.28),
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.white.withOpacity(.24)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(.24),
+                        ),
                       ),
                       child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.support_agent_rounded, color: Colors.white, size: 15),
+                          Icon(
+                            Icons.support_agent_rounded,
+                            color: Colors.white,
+                            size: 15,
+                          ),
                           SizedBox(width: 5),
                           Text(
                             'WhatsApp',
@@ -633,7 +665,7 @@ class _TrustItem extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MARCAS PREMIUM CON LOGOS SVG + FOTOS DE FONDO
+// MARCAS PREMIUM
 // ─────────────────────────────────────────────────────────────
 
 class _PremiumBrandsStrip extends StatelessWidget {
@@ -791,7 +823,7 @@ class _BrandTile extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// CATEGORÍAS CON ESTILO VISUAL
+// CATEGORÍAS
 // ─────────────────────────────────────────────────────────────
 
 class _CategoryPhotoStrip extends StatelessWidget {
@@ -803,7 +835,13 @@ class _CategoryPhotoStrip extends StatelessWidget {
     required this.onTap,
   });
 
-  static const fallback = ['Pantallas', 'Baterías', 'Flex y Conectores', 'Cámaras', 'Herramientas'];
+  static const fallback = [
+    'Pantallas',
+    'Baterías',
+    'Flex y Conectores',
+    'Cámaras',
+    'Herramientas',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -829,7 +867,7 @@ class _CategoryPhotoStrip extends StatelessWidget {
     if (l.contains('pantalla')) return '325 modelos';
     if (l.contains('bater')) return '240 modelos';
     if (l.contains('flex') || l.contains('conector')) return '180 modelos';
-    if (l.contains('camara')) return '120 modelos';
+    if (l.contains('camara') || l.contains('cámara')) return '120 modelos';
     if (l.contains('herramienta')) return '85 modelos';
     if (l.contains('auricular')) return '150 modelos';
     return '${80 + (i * 25)} modelos';
@@ -849,31 +887,12 @@ class _CategoryPhotoCard extends StatelessWidget {
 
   String get _imagePath {
     final l = label.toLowerCase();
-
-    if (l.contains('pantalla')) {
-      return 'assets/categories/pantallas.jpg';
-    }
-
-    if (l.contains('bater')) {
-      return 'assets/categories/baterias.jpg';
-    }
-
-    if (l.contains('flex') || l.contains('conector')) {
-      return 'assets/categories/flex.jpg';
-    }
-
-    if (l.contains('camara') || l.contains('cámara')) {
-      return 'assets/categories/camaras.jpg';
-    }
-
-    if (l.contains('herramienta')) {
-      return 'assets/categories/herramientas.jpg';
-    }
-
-    if (l.contains('auricular') || l.contains('corneta')) {
-      return 'assets/categories/herramientas.jpg';
-    }
-
+    if (l.contains('pantalla')) return 'assets/categories/pantallas.jpg';
+    if (l.contains('bater')) return 'assets/categories/baterias.jpg';
+    if (l.contains('flex') || l.contains('conector')) return 'assets/categories/flex.jpg';
+    if (l.contains('camara') || l.contains('cámara')) return 'assets/categories/camaras.jpg';
+    if (l.contains('herramienta')) return 'assets/categories/herramientas.jpg';
+    if (l.contains('auricular') || l.contains('corneta')) return 'assets/categories/herramientas.jpg';
     return 'assets/categories/herramientas.jpg';
   }
 
@@ -970,8 +989,12 @@ class _WeeklyOfferBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = product?.name ?? 'Pantalla iPhone 11';
-    final price = product == null ? '\$69.99' : '\$${product!.price.toStringAsFixed(2)}';
-    final old = product?.oldPrice != null ? '\$${product!.oldPrice!.toStringAsFixed(2)}' : '\$89.99';
+    final price = product == null
+        ? '\$69.99'
+        : '\$${product!.price.toStringAsFixed(2)}';
+    final old = product?.oldPrice != null
+        ? '\$${product!.oldPrice!.toStringAsFixed(2)}'
+        : '\$89.99';
 
     return GestureDetector(
       onTap: onTap,
@@ -1137,7 +1160,7 @@ class _CountdownBox extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// PRODUCTOS DESTACADOS HORIZONTAL
+// PRODUCTOS DESTACADOS
 // ─────────────────────────────────────────────────────────────
 
 class _FeaturedProductsStrip extends StatelessWidget {
@@ -1235,7 +1258,11 @@ class _FeaturedProductMiniCard extends StatelessWidget {
                   const Positioned(
                     top: 0,
                     right: 0,
-                    child: Icon(Icons.favorite_border_rounded, color: AppTheme.black, size: 21),
+                    child: Icon(
+                      Icons.favorite_border_rounded,
+                      color: AppTheme.black,
+                      size: 21,
+                    ),
                   ),
                   const Positioned(
                     right: 0,
@@ -1292,7 +1319,11 @@ class _FeaturedProductMiniCard extends StatelessWidget {
                       color: AppTheme.orange,
                       borderRadius: BorderRadius.circular(11),
                     ),
-                    child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 19),
+                    child: const Icon(
+                      Icons.shopping_cart_outlined,
+                      color: Colors.white,
+                      size: 19,
+                    ),
                   ),
                 ),
               ],
@@ -1328,7 +1359,11 @@ class _WhatsappCta extends StatelessWidget {
                 color: AppTheme.success,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 25),
+              child: const Icon(
+                Icons.support_agent_rounded,
+                color: Colors.white,
+                size: 25,
+              ),
             ),
             const SizedBox(width: 13),
             const Expanded(
@@ -1363,7 +1398,9 @@ class _WhatsappCta extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               child: const Text(
                 'Contactar',
