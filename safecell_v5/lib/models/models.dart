@@ -41,6 +41,21 @@ class Product {
     model:       j['model'] as String?,
     quality:     j['quality'] as String?,
   );
+
+  Map<String, dynamic> toJson() => {
+    'id':          id,
+    'slug':        slug,
+    'name':        name,
+    'description': description,
+    'price':       price,
+    'old_price':   oldPrice,
+    'stock':       stock,
+    'category':    category,
+    'image_url':   imageUrl,
+    'brand':       brand,
+    'model':       model,
+    'quality':     quality,
+  };
 }
 
 class CartItem {

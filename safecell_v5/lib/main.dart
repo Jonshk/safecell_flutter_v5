@@ -35,9 +35,11 @@ final _router = GoRouter(
           path: '/catalog',
           builder: (_, state) => CatalogScreen(
             initialCategory: state.uri.queryParameters['cat'],
+            initialBrand: state.uri.queryParameters['brand'],
           ),
         ),
         GoRoute(path: '/chat', builder: (_, __) => const ChatScreen()),
+        GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
         GoRoute(path: '/account', builder: (_, __) => const AccountScreen()),
       ],
     ),
@@ -60,6 +62,7 @@ class SafecellApp extends StatelessWidget {
         providers: [
           ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
           ChangeNotifierProvider(create: (_) => CartProvider()),
+          ChangeNotifierProvider(create: (_) => FavoritesProvider()..init()),
         ],
         child: MaterialApp.router(
           title: 'Safecell Venezuela',
@@ -78,6 +81,7 @@ class _Shell extends StatelessWidget {
   int get _idx {
     if (location.startsWith('/catalog')) return 1;
     if (location.startsWith('/chat')) return 2;
+    if (location.startsWith('/favorites')) return 3;
     if (location.startsWith('/account')) return 4;
     return 0;
   }
@@ -85,6 +89,7 @@ class _Shell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
+    final favs = context.watch<FavoritesProvider>();
 
     return Scaffold(
       body: child,
@@ -107,21 +112,11 @@ class _Shell extends StatelessWidget {
             elevation: 0,
             onTap: (i) {
               switch (i) {
-                case 0:
-                  context.go('/');
-                  break;
-                case 1:
-                  context.go('/catalog');
-                  break;
-                case 2:
-                  context.go('/chat');
-                  break;
-                case 3:
-                  context.go('/catalog');
-                  break;
-                case 4:
-                  context.go('/account');
-                  break;
+                case 0: context.go('/'); break;
+                case 1: context.go('/catalog'); break;
+                case 2: context.go('/chat'); break;
+                case 3: context.go('/favorites'); break;
+                case 4: context.go('/account'); break;
               }
             },
             items: [
@@ -140,9 +135,15 @@ class _Shell extends StatelessWidget {
                 activeIcon: Icon(Icons.chat_bubble_rounded),
                 label: 'Chat',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_border_rounded),
-                activeIcon: Icon(Icons.favorite_rounded),
+              BottomNavigationBarItem(
+                icon: favs.count > 0
+                    ? Badge(
+                        backgroundColor: AppTheme.orange,
+                        label: Text('${favs.count}'),
+                        child: const Icon(Icons.favorite_border_rounded),
+                      )
+                    : const Icon(Icons.favorite_border_rounded),
+                activeIcon: const Icon(Icons.favorite_rounded),
                 label: 'Favoritos',
               ),
               BottomNavigationBarItem(
@@ -160,6 +161,230 @@ class _Shell extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// FAVORITES SCREEN
+// ─────────────────────────────────────────────────────────────
+
+class FavoritesScreen extends StatelessWidget {
+  const FavoritesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final favs = context.watch<FavoritesProvider>();
+
+    return Scaffold(
+      backgroundColor: AppTheme.bgPage,
+      appBar: AppBar(
+        backgroundColor: AppTheme.bgPage,
+        title: const Text(
+          'Favoritos',
+          style: TextStyle(
+            color: AppTheme.black,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        actions: [
+          if (favs.count > 0)
+            TextButton(
+              onPressed: () async {
+                for (final p in favs.items.toList()) {
+                  await favs.remove(p.id);
+                }
+              },
+              child: const Text(
+                'Limpiar',
+                style: TextStyle(color: AppTheme.grey2),
+              ),
+            ),
+        ],
+      ),
+      body: favs.items.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.favorite_border_rounded,
+                    size: 72,
+                    color: AppTheme.grey3,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No tienes favoritos aún',
+                    style: TextStyle(
+                      color: AppTheme.grey2,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Guarda productos para verlos aquí',
+                    style: TextStyle(
+                      color: AppTheme.grey3,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => context.go('/catalog'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.orange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    child: const Text(
+                      'Ver catálogo',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.72,
+              ),
+              itemCount: favs.items.length,
+              itemBuilder: (_, i) {
+                final p = favs.items[i];
+                final hasImage = p.imageUrl != null &&
+                    p.imageUrl!.trim().isNotEmpty &&
+                    !p.imageUrl!.toLowerCase().endsWith('.svg');
+
+                return GestureDetector(
+                  onTap: () => context.push('/product/${p.slug}'),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.bgCard,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppTheme.border),
+                      boxShadow: [AppTheme.cardShadow(.04)],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: hasImage
+                                    ? Image.network(
+                                        p.imageUrl!,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.phone_android_rounded,
+                                          color: AppTheme.grey3,
+                                          size: 58,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.phone_android_rounded,
+                                        color: AppTheme.grey3,
+                                        size: 58,
+                                      ),
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () => favs.toggle(p),
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.orange.withOpacity(.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.favorite_rounded,
+                                      color: AppTheme.orange,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          p.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppTheme.black,
+                            fontSize: 12.5,
+                            height: 1.2,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '\$${p.price.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  color: AppTheme.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                context.read<CartProvider>().add(p);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${p.name} agregado'),
+                                    backgroundColor: AppTheme.black,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.orange,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.shopping_cart_outlined,
+                                  color: Colors.white,
+                                  size: 17,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

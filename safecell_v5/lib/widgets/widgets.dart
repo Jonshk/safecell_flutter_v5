@@ -367,3 +367,168 @@ class ShimmerGrid extends StatelessWidget {
     ),
   );
 }
+
+// ─── Loading Experience ───────────────────────────────────────────
+class LoadingExperience extends StatefulWidget {
+  final String? message;
+  const LoadingExperience({super.key, this.message});
+
+  @override
+  State<LoadingExperience> createState() => _LoadingExperienceState();
+}
+
+class _LoadingExperienceState extends State<LoadingExperience>
+    with TickerProviderStateMixin {
+  late AnimationController _barCtrl;
+  late AnimationController _fadeCtrl;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _bar;
+  late Animation<double> _fade;
+  late Animation<double> _pulse;
+
+  int _msgIndex = 0;
+  static const _messages = [
+    'Conectando con el servidor...',
+    'Cargando productos...',
+    'Personalizando tu experiencia...',
+    'Casi listo...',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _barCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
+
+    _fadeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..forward();
+
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+
+    _bar = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _barCtrl, curve: Curves.easeInOut),
+    );
+    _fade = Tween(begin: 0.0, end: 1.0).animate(_fadeCtrl);
+    _pulse = Tween(begin: 0.88, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+
+    _barCtrl.addListener(() {
+      final newIdx = (_barCtrl.value * _messages.length).floor()
+          .clamp(0, _messages.length - 1);
+      if (newIdx != _msgIndex && mounted) {
+        setState(() => _msgIndex = newIdx);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _barCtrl.dispose();
+    _fadeCtrl.dispose();
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _fade,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ScaleTransition(
+                  scale: _pulse,
+                  child: RichText(
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Safe',
+                          style: TextStyle(
+                            color: Color(0xFF555E6E),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'Cell',
+                          style: TextStyle(
+                            color: AppTheme.orange,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.border,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: AnimatedBuilder(
+                    animation: _bar,
+                    builder: (_, __) => FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: _bar.value,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.orange,
+                          borderRadius: BorderRadius.circular(99),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.orange.withOpacity(0.4),
+                              blurRadius: 6,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.3),
+                        end: Offset.zero,
+                      ).animate(anim),
+                      child: child,
+                    ),
+                  ),
+                  child: Text(
+                    widget.message ?? _messages[_msgIndex],
+                    key: ValueKey(_msgIndex),
+                    style: const TextStyle(
+                      color: AppTheme.grey2,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+}

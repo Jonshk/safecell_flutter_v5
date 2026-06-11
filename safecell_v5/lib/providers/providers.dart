@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -97,4 +98,53 @@ class CartProvider extends ChangeNotifier {
 
   List<Map<String, dynamic>> toOrderItems() =>
     _items.map((i) => {'product_id': i.product.id, 'quantity': i.quantity}).toList();
+}
+
+// ─────────────────────────────────────────────────────────────
+// FAVORITES PROVIDER
+// ─────────────────────────────────────────────────────────────
+
+class FavoritesProvider extends ChangeNotifier {
+  static const _key = 'favorites';
+  List<Product> _items = [];
+
+  List<Product> get items => List.unmodifiable(_items);
+  int get count => _items.length;
+
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_key);
+    if (raw != null) {
+      try {
+        final list = jsonDecode(raw) as List;
+        _items = list.map((e) => Product.fromJson(e)).toList();
+        notifyListeners();
+      } catch (_) {}
+    }
+  }
+
+  bool isFavorite(int productId) =>
+      _items.any((p) => p.id == productId);
+
+  Future<void> toggle(Product product) async {
+    if (isFavorite(product.id)) {
+      _items.removeWhere((p) => p.id == product.id);
+    } else {
+      _items.add(product);
+    }
+    notifyListeners();
+    await _save();
+  }
+
+  Future<void> remove(int productId) async {
+    _items.removeWhere((p) => p.id == productId);
+    notifyListeners();
+    await _save();
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = jsonEncode(_items.map((p) => p.toJson()).toList());
+    await prefs.setString(_key, raw);
+  }
 }

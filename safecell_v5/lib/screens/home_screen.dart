@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onAction: () => context.go('/catalog'),
             ),
             const SizedBox(height: 12),
-            const _PremiumBrandsStrip(),
+            _PremiumBrandsStrip(onBrandTap: (brand) => context.go('/catalog?brand=${Uri.encodeComponent(brand)}')),
             const SizedBox(height: 24),
 
             SectionHeader(
@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             _loading
-                ? const SizedBox(height: 280, child: ShimmerGrid(count: 4))
+                ? const SizedBox(height: 280, child: LoadingExperience())
                 : _FeaturedProductsStrip(
                     products: _featured,
                     onTap: (p) => context.go('/product/${p.slug}'),
@@ -669,7 +669,8 @@ class _TrustItem extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 
 class _PremiumBrandsStrip extends StatelessWidget {
-  const _PremiumBrandsStrip();
+  final ValueChanged<String> onBrandTap;
+  const _PremiumBrandsStrip({required this.onBrandTap});
 
   static const brands = [
     _BrandTileData(
@@ -706,7 +707,7 @@ class _PremiumBrandsStrip extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           itemCount: brands.length,
           separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, i) => _BrandTile(data: brands[i]),
+          itemBuilder: (_, i) => _BrandTile(data: brands[i], onTap: () => onBrandTap(brands[i].name)),
         ),
       );
 }
@@ -725,12 +726,15 @@ class _BrandTileData {
 
 class _BrandTile extends StatelessWidget {
   final _BrandTileData data;
+  final VoidCallback onTap;
 
-  const _BrandTile({required this.data});
+  const _BrandTile({required this.data, required this.onTap});
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: 174,
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 174,
         decoration: BoxDecoration(
           color: AppTheme.black,
           borderRadius: BorderRadius.circular(22),
@@ -805,7 +809,8 @@ class _BrandTile extends StatelessWidget {
             ),
           ],
         ),
-      );
+      ),
+    );
 
   Widget _brandFallback(String name) => Container(
         color: AppTheme.black,
@@ -1003,118 +1008,86 @@ class _WeeklyOfferBanner extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 116,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppTheme.black,
           borderRadius: BorderRadius.circular(22),
           boxShadow: [AppTheme.softShadow(.10)],
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Positioned(
-              right: 120,
-              bottom: -24,
-              child: Icon(
-                Icons.phone_iphone_rounded,
-                color: Colors.white.withOpacity(.10),
-                size: 116,
-              ),
-            ),
-            Positioned(
-              right: 0,
-              top: 14,
-              child: Row(
-                children: const [
-                  _CountdownBox(value: '02', label: 'DÍAS'),
-                  SizedBox(width: 5),
-                  _CountdownBox(value: '14', label: 'HORAS'),
-                  SizedBox(width: 5),
-                  _CountdownBox(value: '35', label: 'MIN'),
-                  SizedBox(width: 5),
-                  _CountdownBox(value: '28', label: 'SEG'),
-                ],
-              ),
-            ),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.bolt_rounded, color: AppTheme.orange, size: 27),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 135),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Oferta de la semana',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              price,
-                              style: const TextStyle(
-                                color: AppTheme.orange,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              old,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(.35),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                decoration: TextDecoration.lineThrough,
-                                decorationColor: Colors.white54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                const Icon(Icons.bolt_rounded, color: AppTheme.orange, size: 20),
+                const SizedBox(width: 6),
+                const Text(
+                  'Oferta de la semana',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.orange,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    '-22%',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
               ],
             ),
-            Positioned(
-              right: 116,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-                decoration: const BoxDecoration(
-                  color: AppTheme.orange,
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  '-22%',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
+            const SizedBox(height: 8),
+            Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  price,
+                  style: const TextStyle(
+                    color: AppTheme.orange,
+                    fontSize: 20,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Text(
+                  old,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(.35),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: Colors.white54,
+                  ),
+                ),
+                const Spacer(),
+                const _CountdownBox(value: '14', label: 'H'),
+                const SizedBox(width: 4),
+                const _CountdownBox(value: '35', label: 'M'),
+                const SizedBox(width: 4),
+                const _CountdownBox(value: '28', label: 'S'),
+              ],
             ),
           ],
         ),

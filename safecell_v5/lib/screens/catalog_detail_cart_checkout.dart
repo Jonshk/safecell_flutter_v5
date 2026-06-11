@@ -11,7 +11,8 @@ import '../providers/providers.dart';
 // ─── CATÁLOGO PREMIUM ─────────────────────────────────────────────
 class CatalogScreen extends StatefulWidget {
   final String? initialCategory;
-  const CatalogScreen({super.key, this.initialCategory});
+  final String? initialBrand;
+  const CatalogScreen({super.key, this.initialCategory, this.initialBrand});
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -32,6 +33,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void initState() {
     super.initState();
     _selCat = widget.initialCategory;
+    // Si viene marca, la ponemos como búsqueda inicial
+    if (widget.initialBrand != null) {
+      _searchCtrl.text = widget.initialBrand!;
+    }
     _loadCats();
     _load(reset: true);
 
@@ -98,7 +103,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
             const Text('Catálogo', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
             const SizedBox(height: 2),
             Text(
-              _selCat == null ? 'Repuestos, accesorios y soluciones móviles' : _selCat!,
+              _selCat == null
+                  ? (widget.initialBrand != null
+                      ? 'Marca: ${widget.initialBrand}'
+                      : 'Repuestos, accesorios y soluciones móviles')
+                  : _selCat!,
               style: const TextStyle(
                 color: AppTheme.grey2,
                 fontSize: 11,
@@ -216,10 +225,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ),
           Expanded(
             child: _loading && _products.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: ShimmerGrid(count: 8),
-                  )
+                ? const LoadingExperience()
                 : _products.isEmpty
                     ? const _EmptyCatalog()
                     : GridView.builder(
@@ -329,6 +335,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       body: const Center(child: Text('Producto no encontrado')));
 
     final p = _product!;
+    final favs = context.watch<FavoritesProvider>();
+    final isFav = favs.isFavorite(p.id);
+
     return Scaffold(
       backgroundColor: AppTheme.bgPage,
       body: CustomScrollView(
@@ -351,8 +360,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.favorite_border, color: AppTheme.black),
-                onPressed: () {},
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Icon(
+                    isFav ? Icons.favorite_rounded : Icons.favorite_border,
+                    key: ValueKey(isFav),
+                    color: isFav ? AppTheme.orange : AppTheme.black,
+                  ),
+                ),
+                onPressed: () async {
+                  await favs.toggle(p);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(favs.isFavorite(p.id)
+                        ? '${p.name} guardado en favoritos'
+                        : 'Eliminado de favoritos'),
+                    backgroundColor: AppTheme.black,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    duration: const Duration(seconds: 2),
+                  ));
+                },
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -376,7 +404,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Categoría badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -753,7 +780,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Barra de progreso
             Row(children: List.generate(4, (i) => Expanded(
               child: Container(
                 height: 3,
@@ -811,7 +837,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Resumen
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
